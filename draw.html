@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>くじ引き抽選結果</title>
+  <style>
+    body {
+      font-family: "Arial", sans-serif;
+      background: #ffe9f0;
+      color: #333;
+      text-align: center;
+      padding: 2em;
+    }
+    h1 {
+      font-size: 2.5em;
+      color: #ff4081;
+    }
+    .result {
+      margin: 2em auto;
+      background: #fff8fc;
+      padding: 1.5em;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(255, 64, 129, 0.2);
+      max-width: 500px;
+    }
+    .confetti {
+      font-size: 3em;
+      color: gold;
+    }
+    .btn {
+      background-color: #ff4081;
+      color: white;
+      border: none;
+      padding: 1em 2em;
+      border-radius: 25px;
+      font-size: 1.2em;
+      cursor: pointer;
+      margin-top: 1em;
+    }
+    .btn:disabled {
+      background-color: #ccc;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      padding: 0.5em 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎉 くじ引き抽選 🎉</h1>
+
+  <div class="result" id="resultArea">
+    <p id="message">QRコードをスキャンしてアクセスすると、結果が表示されます。</p>
+    <div id="winnerDisplay" style="display:none;">
+      <div class="confetti">🎊</div>
+      <p><strong>当選者ID:</strong> <span id="winnerID"></span></p>
+      <p><strong>当選プレゼント:</strong> <span id="giftName"></span></p>
+    </div>
+    <button class="btn" onclick="resetPage()">リセット</button>
+  </div>
+
+  <div id="finalList" style="margin-top:2em; display:none;">
+    <h2>🎁 当選者一覧 🎁</h2>
+    <ul id="winnersList"></ul>
+  </div>
+
+  <script>
+    const gifts = [
+      "Bluetoothスピーカー", "スタバカード", "高級チョコレート", "モバイルバッテリー",
+      "Amazonギフト券", "ポータブル加湿器", "アイマッサージャー", "ワイヤレスイヤホン",
+      "コーヒーセット", "図書カード"
+    ];
+    const selectedIDs = new Set(); // すでにスキャンされたIDを記録
+    const winners = []; // 当選者情報を記録
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const pid = urlParams.get("pid");
+
+    function showResult(pid) {
+      const resultArea = document.getElementById("resultArea");
+      const message = document.getElementById("message");
+      const winnerDisplay = document.getElementById("winnerDisplay");
+      const winnerID = document.getElementById("winnerID");
+      const giftName = document.getElementById("giftName");
+
+      // 状態保持のため localStorage を使用
+      let storedWinners = JSON.parse(localStorage.getItem("winners")) || [];
+
+      if (storedWinners.length >= 10) {
+        message.textContent = "抽選はすでに終了しました。";
+        document.getElementById("finalList").style.display = "block";
+        updateWinnersList(storedWinners);
+        return;
+      }
+
+      if (storedWinners.find(w => w.pid === pid)) {
+        message.textContent = `このID（${pid}）はすでに当選しています。`;
+        return;
+      }
+
+      const giftIndex = storedWinners.length;
+      const gift = gifts[giftIndex];
+
+      winnerID.textContent = pid;
+      giftName.textContent = gift;
+      winnerDisplay.style.display = "block";
+      message.style.display = "none";
+
+      storedWinners.push({ pid, gift });
+      localStorage.setItem("winners", JSON.stringify(storedWinners));
+
+      if (storedWinners.length === 10) {
+        document.getElementById("finalList").style.display = "block";
+        updateWinnersList(storedWinners);
+      }
+    }
+
+    function updateWinnersList(winnersData) {
+      const list = document.getElementById("winnersList");
+      list.innerHTML = "";
+      winnersData.forEach(w => {
+        const li = document.createElement("li");
+        li.textContent = `${w.pid} - ${w.gift}`;
+        list.appendChild(li);
+      });
+    }
+
+    function resetPage() {
+      localStorage.removeItem("winners");
+      location.reload();
+    }
+
+    if (pid) {
+      showResult(pid);
+    }
+  </script>
+</body>
+</html>
