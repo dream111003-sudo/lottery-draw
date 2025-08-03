@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>くじ引き抽選</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🎉当選者発表🎉</h1>
+    <div class="result">
+      <p id="pid"></p>
+      <p id="prize"></p>
+    </div>
+    <canvas id="confetti"></canvas>
+    <audio id="sound" src="tousen.mp3" preload="auto"></audio>
+  </div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const pid = params.get("pid") || "不明なID";
+    document.getElementById("pid").textContent = `ID: ${pid}`;
+
+    const prizes = ["Nintendo Switch", "AirPods", "Kindle", "スタバカード", "Amazonギフト券", "モバイルバッテリー", "マグカップ", "ミニ扇風機", "お菓子詰め合わせ", "ぬいぐるみ"];
+    const index = parseInt(pid.replace("P", "")) % prizes.length;
+    document.getElementById("prize").textContent = `🎁 プレゼント：${prizes[index]}`;
+
+    document.getElementById("sound").play();
+
+    // 簡易紙吹雪演出
+    const canvas = document.getElementById("confetti");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const confetti = [...Array(100)].map(() => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 6 + 2,
+      d: Math.random() * 100,
+    }));
+    let angle = 0;
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      angle += 0.01;
+      confetti.forEach(c => {
+        c.y += Math.cos(angle + c.d) + 1 + c.r / 2;
+        c.x += Math.sin(angle) * 2;
+        if (c.y > canvas.height) {
+          c.y = 0;
+          c.x = Math.random() * canvas.width;
+        }
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+        ctx.fillStyle = "#ff69b4";
+        ctx.fill();
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>
